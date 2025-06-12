@@ -51,28 +51,65 @@
         const state = urlParams.get('state');
         const error = urlParams.get('error');
 
+        console.log('Callback received:', { code: !!code, state: !!state, error });
+
         if (error) {
-            alert('Authentication failed: ' + error);
+            document.querySelector('.container').innerHTML = `
+                <h2>Authentication Failed</h2>
+                <p>Error: ${error}</p>
+                <p>Please close this tab and try again in the app.</p>
+            `;
         } else if (code && state) {
             // Create deep link to redirect back to the app
             const deepLink = `maya://canva-callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
             
-            // Try to redirect to the app
-            window.location.href = deepLink;
+            console.log('Attempting to redirect with deep link:', deepLink);
             
-            // Fallback: show instructions if deep link doesn't work
+            // Method 1: Try direct redirect
+            try {
+                window.location.href = deepLink;
+            } catch (e) {
+                console.log('Direct redirect failed:', e);
+            }
+            
+            // Method 2: Fallback with user interaction
             setTimeout(() => {
                 document.querySelector('.container').innerHTML = `
-                    <h2>Authentication Successful!</h2>
-                    <p>Please return to the Maya Invite app.</p>
-                    <p>If the app didn't open automatically, please tap this link:</p>
-                    <a href="${deepLink}" style="color: white; text-decoration: underline;">Open Maya Invite</a>
+                    <div style="text-align: center;">
+                        <h2>✅ Authentication Successful!</h2>
+                        <p>Tap the button below to return to Maya Invite:</p>
+                        <br>
+                        <a href="${deepLink}" 
+                           style="
+                               display: inline-block;
+                               background: #4CAF50;
+                               color: white;
+                               padding: 15px 30px;
+                               text-decoration: none;
+                               border-radius: 8px;
+                               font-size: 18px;
+                               font-weight: bold;
+                               margin: 10px;
+                           ">
+                           🚀 Open Maya Invite
+                        </a>
+                        <br><br>
+                        <p style="font-size: 14px; color: #ccc;">
+                            If the button doesn't work, copy this and open it in Safari:
+                            <br><br>
+                            <code style="background: rgba(255,255,255,0.1); padding: 5px; border-radius: 4px; word-break: break-all;">
+                                ${deepLink}
+                            </code>
+                        </p>
+                    </div>
                 `;
-            }, 2000);
+            }, 1000);
+            
         } else {
             document.querySelector('.container').innerHTML = `
                 <h2>Invalid Callback</h2>
                 <p>No authorization code received. Please try again.</p>
+                <p>Please close this tab and retry in the app.</p>
             `;
         }
     </script>
